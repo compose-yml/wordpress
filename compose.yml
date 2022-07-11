@@ -1,0 +1,38 @@
+---
+version: "3.8"
+
+services:
+  wordpress:
+    image: docker.io/library/wordpress:latest
+    networks:
+      - proxy
+      - wordpress
+    environment:
+      - "WORDPRESS_DB_HOST=mariadb"
+      - "WORDPRESS_DB_NAME=wordpress"
+      - "WORDPRESS_DB_USER=wordpress"
+      - "WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}"
+    volumes:
+      - "./compose.d/wordpress/html.d:/var/www/html:rw"
+      - "./compose.d/wordpress/conf.d/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini"
+    restart: always
+    container_name: ${WORDPRESS_CONTAINER_NAME}
+  mariadb:
+    image: docker.io/library/mariadb:latest
+    networks:
+      - wordpress
+    environment:
+      - "MARIADB_RANDOM_ROOT_PASSWORD=yes"
+      - "MYSQL_DATABASE=wordpress"
+      - "MYSQL_USER=wordpress"
+      - "MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD}"
+    volumes:
+      - "./compose.d/mariadb:/var/lib/mysql"
+    restart: always
+    container_name: ${MARIADB_CONTAINER_NAME}
+
+networks:
+  proxy:
+    external: true
+  wordpress:
+    name: ${NETWORKS_WORDPRESS_NAME}
